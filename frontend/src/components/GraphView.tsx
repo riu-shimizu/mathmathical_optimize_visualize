@@ -21,6 +21,30 @@ type Props = {
 const WIDTH = 520;
 const HEIGHT = 360;
 
+const clientToSvg = (e: React.MouseEvent, svg: SVGSVGElement) => {
+  const pt = svg.createSVGPoint();
+  pt.x = e.clientX;
+  pt.y = e.clientY;
+  const ctm = svg.getScreenCTM();
+  if (ctm) {
+    const inv = ctm.inverse();
+    const svgPt = pt.matrixTransform(inv);
+    return {
+      x: Math.max(0, Math.min(WIDTH, Number(svgPt.x.toFixed(1)))),
+      y: Math.max(0, Math.min(HEIGHT, Number(svgPt.y.toFixed(1)))),
+    };
+  }
+  const rect = svg.getBoundingClientRect();
+  const scaleX = WIDTH / rect.width;
+  const scaleY = HEIGHT / rect.height;
+  const x = (e.clientX - rect.left) * scaleX;
+  const y = (e.clientY - rect.top) * scaleY;
+  return {
+    x: Math.max(0, Math.min(WIDTH, Number(x.toFixed(1)))),
+    y: Math.max(0, Math.min(HEIGHT, Number(y.toFixed(1)))),
+  };
+};
+
 const GraphView = ({
   nodes,
   bestRoute,
@@ -51,19 +75,15 @@ const GraphView = ({
     if (targetEl.closest("[data-node-id]")) return;
     const svgEl = svgRef.current;
     if (!svgEl) return;
-    const rect = svgEl.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    onAddNode(Number(x.toFixed(1)), Number(y.toFixed(1)));
+    const { x, y } = clientToSvg(e, svgEl);
+    onAddNode(x, y);
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
     if (draggingId === null) return;
     if (!svgRef.current) return;
-    const rect = svgRef.current.getBoundingClientRect();
-    const x = Math.max(0, Math.min(WIDTH, e.clientX - rect.left));
-    const y = Math.max(0, Math.min(HEIGHT, e.clientY - rect.top));
-    onMoveNode(draggingId, Number(x.toFixed(1)), Number(y.toFixed(1)));
+    const { x, y } = clientToSvg(e, svgRef.current);
+    onMoveNode(draggingId, x, y);
   };
 
   const handleMouseUp = () => {

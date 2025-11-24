@@ -188,6 +188,27 @@ const SearchTreeView = ({
     setLastPos(null);
   };
 
+  const handleTouchStart = (e: React.TouchEvent<SVGSVGElement>) => {
+    if (isPlaying) return;
+    const t = e.touches[0];
+    setDragging(true);
+    setLastPos({ x: t.clientX, y: t.clientY });
+  };
+
+  const handleTouchMove = (e: React.TouchEvent<SVGSVGElement>) => {
+    if (!dragging || !lastPos) return;
+    const t = e.touches[0];
+    const dx = t.clientX - lastPos.x;
+    const dy = t.clientY - lastPos.y;
+    setManualOffset((prev) => ({ x: prev.x + dx, y: prev.y + dy }));
+    setLastPos({ x: t.clientX, y: t.clientY });
+  };
+
+  const handleTouchEnd = () => {
+    setDragging(false);
+    setLastPos(null);
+  };
+
   const effectiveXPlaying = -panX;
   const effectiveYPlaying = -panY;
   const effectiveXManual = manualOffset.x - panX;
@@ -223,6 +244,10 @@ const SearchTreeView = ({
         onMouseMove={handleMouseMove}
         onMouseUp={stopDrag}
         onMouseLeave={stopDrag}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        onTouchCancel={handleTouchEnd}
         style={{ cursor: !isPlaying && dragging ? "grabbing" : !isPlaying ? "grab" : "default" }}
       >
         <defs>

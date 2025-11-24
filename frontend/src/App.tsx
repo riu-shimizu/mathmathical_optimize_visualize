@@ -180,6 +180,18 @@ function App() {
         </div>
       </header>
 
+      <section className="card glass timeline">
+        <TimelineController
+          totalSteps={Math.max(events.length - 1, 0)}
+          currentStep={currentStep}
+          isPlaying={isPlaying}
+          onPlayPause={() => setIsPlaying((p) => !p)}
+          onStepChange={setCurrentStep}
+          onSpeedChange={setPlaySpeed}
+          playSpeed={playSpeed}
+        />
+      </section>
+
       <section className="grid">
         <div className="card glass">
           <div className="card-header">
@@ -239,18 +251,6 @@ function App() {
             bestRoute={bestRoute}
           />
         </div>
-      </section>
-
-      <section className="card glass timeline">
-        <TimelineController
-          totalSteps={Math.max(events.length - 1, 0)}
-          currentStep={currentStep}
-          isPlaying={isPlaying}
-          onPlayPause={() => setIsPlaying((p) => !p)}
-          onStepChange={setCurrentStep}
-          onSpeedChange={setPlaySpeed}
-          playSpeed={playSpeed}
-        />
       </section>
     </div>
   );
