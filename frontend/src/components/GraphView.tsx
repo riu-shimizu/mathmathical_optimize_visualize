@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 
 export type NodePoint = {
@@ -35,7 +35,13 @@ const GraphView = ({
   const [draggingId, setDraggingId] = useState<number | null>(null);
   const [hoverId, setHoverId] = useState<number | null>(null);
 
-  const nodeMap = new Map(nodes.map((n) => [n.id, n]));
+  const nodeMap = useMemo(() => {
+    const m = new Map<number, NodePoint>();
+    nodes.forEach((n) => m.set(Number(n.id), { ...n, id: Number(n.id) }));
+    return m;
+  }, [nodes]);
+
+  const toNode = (id: number | string) => nodeMap.get(Number(id));
 
   const handleBackgroundClick = (e: React.MouseEvent<SVGSVGElement, MouseEvent>) => {
     if (!addMode) return;
@@ -64,27 +70,24 @@ const GraphView = ({
     setDraggingId(null);
   };
 
-  const bestEdges =
-    bestRoute.length > 1
-      ? bestRoute.map((id, idx) => {
-          if (idx === bestRoute.length - 1) return null;
-          const a = nodeMap.get(id);
-          const b = nodeMap.get(bestRoute[idx + 1]);
-          if (!a || !b) return null;
-          return { id: `${id}-${bestRoute[idx + 1]}`, a, b };
-        })
-      : [];
+  const bestPoints = useMemo(() => {
+    const filtered = bestRoute.map((id) => Number(id)).filter((id) => nodeMap.has(id));
+    if (filtered.length <= 1) return [];
+    const closed =
+      filtered.length > 2 && filtered[0] !== filtered[filtered.length - 1]
+        ? [...filtered, filtered[0]]
+        : filtered;
+    return closed
+      .map((id) => toNode(id))
+      .filter((p): p is NodePoint => Boolean(p));
+  }, [bestRoute, nodeMap]);
 
-  const pathEdges =
-    currentPath.length > 1
-      ? currentPath.map((id, idx) => {
-          if (idx === currentPath.length - 1) return null;
-          const a = nodeMap.get(id);
-          const b = nodeMap.get(currentPath[idx + 1]);
-          if (!a || !b) return null;
-          return { id: `p-${id}-${currentPath[idx + 1]}`, a, b };
-        })
-      : [];
+  const pathPoints = useMemo(() => {
+    if (currentPath.length <= 1) return [];
+    return currentPath
+      .map((id) => toNode(id))
+      .filter((p): p is NodePoint => Boolean(p));
+  }, [currentPath, nodeMap]);
 
   return (
     <div className="graph-container" onMouseMove={handleMouseMove} onMouseUp={handleMouseUp}>
@@ -111,44 +114,32 @@ const GraphView = ({
 
         <rect width={WIDTH} height={HEIGHT} rx="18" fill="rgba(255,255,255,0.02)" />
 
-        {pathEdges.map(
-          (edge) =>
-            edge && (
-              <motion.line
-                key={edge.id}
-                x1={edge.a.x}
-                y1={edge.a.y}
-                x2={edge.b.x}
-                y2={edge.b.y}
-                stroke="rgba(255,255,255,0.55)"
-                strokeDasharray="8 6"
-                strokeWidth={2.2}
-                opacity={0.65}
-                initial={{ pathLength: 0, opacity: 0 }}
-                animate={{ pathLength: 1, opacity: 0.65 }}
-                transition={{ duration: 0.4 }}
-              />
-            ),
+        {pathPoints.length > 1 && (
+          <motion.polyline
+            points={pathPoints.map((p) => `${p.x},${p.y}`).join(" ")}
+            stroke="rgba(255,255,255,0.6)"
+            strokeDasharray="10 8"
+            strokeWidth={2.4}
+            fill="none"
+            opacity={0.7}
+            initial={{ pathLength: 0, opacity: 0 }}
+            animate={{ pathLength: 1, opacity: 0.7 }}
+            transition={{ duration: 0.4 }}
+          />
         )}
 
-        {bestEdges.map(
-          (edge) =>
-            edge && (
-              <motion.line
-                key={edge.id}
-                x1={edge.a.x}
-                y1={edge.a.y}
-                x2={edge.b.x}
-                y2={edge.b.y}
-                stroke="rgba(139,123,255,0.7)"
-                strokeWidth={4}
-                strokeOpacity={0.85}
-                initial={{ pathLength: 0 }}
-                animate={{ pathLength: 1 }}
-                transition={{ duration: 0.5 }}
-                filter="url(#glowFilter)"
-              />
-            ),
+        {bestPoints.length > 1 && (
+          <motion.polyline
+            points={bestPoints.map((p) => `${p.x},${p.y}`).join(" ")}
+            stroke="rgba(139,123,255,0.78)"
+            strokeWidth={4}
+            fill="none"
+            strokeOpacity={0.9}
+            initial={{ pathLength: 0 }}
+            animate={{ pathLength: 1 }}
+            transition={{ duration: 0.6 }}
+            filter="url(#glowFilter)"
+          />
         )}
 
         {nodes.map((node) => {

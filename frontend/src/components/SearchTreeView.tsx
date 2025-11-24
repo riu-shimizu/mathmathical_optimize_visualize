@@ -24,6 +24,7 @@ type Props = {
 };
 
 const VIEW_WIDTH = 760;
+const VIEW_HEIGHT = 420;
 const LEVEL_HEIGHT = 90;
 
 const SearchTreeView = ({
@@ -38,7 +39,7 @@ const SearchTreeView = ({
   const [dragging, setDragging] = useState(false);
   const [lastPos, setLastPos] = useState<{ x: number; y: number } | null>(null);
 
-  const { nodes, links, panX, bestPathNodeIds, bestPathEdges } = useMemo(() => {
+  const { nodes, links, panX, panY, bestPathNodeIds, bestPathEdges } = useMemo(() => {
     const map = new Map<string, TreeNode>();
     const bestPathNodeIds = new Set<string>();
     const bestPathEdges = new Set<string>();
@@ -91,8 +92,9 @@ const SearchTreeView = ({
     });
 
     // On finish: keep all non-pruned complete tours and their ancestors. Remove pruned nodes as above.
-    if (isFinished) {
-      const maxDepthSeen = Math.max(...Array.from(map.values()).map((n) => n.path.length));
+    if (isFinished && map.size > 0) {
+      const depths = Array.from(map.values()).map((n) => n.path.length);
+      const maxDepthSeen = depths.length ? Math.max(...depths) : 0;
       const targetDepth = bestRoute.length > 1 ? bestRoute.length - 1 : maxDepthSeen;
       const keep = new Set<string>();
       Array.from(map.values()).forEach((node) => {
@@ -161,8 +163,10 @@ const SearchTreeView = ({
     const currentPos = currentEvent ? positionedNodes[currentEvent.node_id] : undefined;
     const panX =
       currentPos && currentPos.x > VIEW_WIDTH * 0.5 ? currentPos.x - VIEW_WIDTH * 0.5 : 0;
+    const panY =
+      currentPos && currentPos.y > VIEW_HEIGHT * 0.5 ? currentPos.y - VIEW_HEIGHT * 0.5 : 0;
 
-    return { nodes: positionedNodes, links, panX, bestPathNodeIds, bestPathEdges };
+    return { nodes: positionedNodes, links, panX, panY, bestPathNodeIds, bestPathEdges };
   }, [events, currentEvent, currentStep, isPlaying, isFinished, bestRoute]);
 
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -185,6 +189,7 @@ const SearchTreeView = ({
   };
 
   const effectiveXPlaying = -panX;
+  const effectiveYPlaying = -panY;
   const effectiveXManual = manualOffset.x - panX;
   const effectiveYManual = manualOffset.y;
 
@@ -212,7 +217,7 @@ const SearchTreeView = ({
 
         {isPlaying ? (
           <motion.g
-            animate={{ x: effectiveXPlaying, y: 0 }}
+            animate={{ x: effectiveXPlaying, y: effectiveYPlaying }}
             transition={{ type: "spring", stiffness: 80, damping: 16 }}
           >
             {links.map((link) => (

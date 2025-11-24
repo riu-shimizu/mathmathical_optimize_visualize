@@ -220,11 +220,12 @@ button.ghost {
 }
 
 .select {
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid var(--panel-border);
-  color: #fff;
+  background: #000;
+  border: 1px solid #8b7bff;
+  color: #0ef0c9;
   padding: 8px 10px;
   border-radius: 10px;
+  font-weight: 600;
 }
 
 @media (max-width: 960px) {

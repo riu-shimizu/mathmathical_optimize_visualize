@@ -40,6 +40,7 @@ function App() {
 
   useEffect(() => {
     if (!isPlaying) return;
+    const interval = Math.max(8, 400 / playSpeed);
     const timer = setInterval(() => {
       setCurrentStep((prev) => {
         if (!events.length) return 0;
@@ -50,7 +51,7 @@ function App() {
         }
         return next;
       });
-    }, Math.max(80, 400 / playSpeed));
+    }, interval);
     return () => clearInterval(timer);
   }, [isPlaying, events.length, playSpeed]);
 
@@ -89,13 +90,21 @@ function App() {
         type: e.type,
         node_id: e.node_id,
         parent_id: e.parent_id,
-        path: e.path,
+        path: (e.path || []).map((p: number) => Number(p)),
         cost: e.cost,
         bound: e.bound,
         reason: e.reason,
-        best_route: e.best_route,
+        best_route: e.best_route ? e.best_route.map((p: number) => Number(p)) : undefined,
         best_cost: e.best_cost,
       }));
+      if (result.node_positions?.length) {
+        const normalized = result.node_positions.map((n) => ({
+          id: Number(n.id),
+          x: Number(n.x),
+          y: Number(n.y),
+        }));
+        setNodes(normalized);
+      }
       setEvents(convertedEvents);
       setBestRoute([]);
       setBestCost(null);
