@@ -96,14 +96,13 @@ function App() {
         best_cost: e.best_cost,
       }));
       setEvents(convertedEvents);
-      // 初期状態ではまだ可行解がないので空表示にする
       setBestRoute([]);
       setBestCost(null);
       setCurrentStep(0);
       setIsPlaying(true);
     } catch (err) {
       console.error(err);
-      alert("探索に失敗しました。バックエンドが起動しているか確認してください。");
+      alert("Search failed. Please ensure the backend is running.");
     } finally {
       setIsLoading(false);
     }
@@ -146,16 +145,18 @@ function App() {
     <div className="page">
       <header className="header">
         <div>
-          <div className="eyebrow">巡回セールスマン探索 PoC</div>
+          <div className="eyebrow">TSP Search Explorer</div>
           <h1>TSP Explorer</h1>
-          <p className="subtitle">探索木がぬるぬる伸びて光る、分枝限定の可視化デモ。</p>
+          <p className="subtitle">
+            Branch-and-bound search visualized with glowing trees and smooth playback.
+          </p>
         </div>
         <div className="header-actions">
           <button className="ghost" onClick={() => handleResetPlayback()}>
-            先頭へ
+            Jump to Start
           </button>
           <button className="primary" onClick={handleSolve} disabled={isLoading || nodes.length < 3}>
-            {isLoading ? "探索中..." : "探索開始"}
+            {isLoading ? "Searching..." : "Start Search"}
           </button>
         </div>
       </header>
@@ -164,16 +165,17 @@ function App() {
         <div className="card glass">
           <div className="card-header">
             <div>
-              <h2>ノード配置</h2>
+              <h2>Node Placement</h2>
               <p className="label">
-                「ノードを追加」を押してキャンバスをクリック / ドラッグで移動 / 選択後に削除
+                Click “Add node” then click canvas / drag to move / select then delete
               </p>
             </div>
-            <div className="chip">ノード {nodes.length} 個</div>
+            <div className="chip">Nodes: {nodes.length}</div>
           </div>
           <GraphView
             nodes={nodes}
             bestRoute={bestRoute}
+            currentPath={events[currentStep]?.path || []}
             addMode={addMode}
             onAddNode={handleAddNode}
             onMoveNode={handleUpdateNode}
@@ -185,13 +187,13 @@ function App() {
               className={addMode ? "primary" : "ghost"}
               onClick={() => setAddMode((v) => !v)}
             >
-              ノードを追加
+              Add Node
             </button>
             <button className="ghost" onClick={handleDeleteNode} disabled={selectedNodeId === null}>
-              選択ノードを削除
+              Delete Selected
             </button>
             <div className="metric">
-              <span>ベスト巡回長</span>
+              <span>Best Tour Length</span>
               <strong>{bestCost ? bestCost.toFixed(2) : "-"}</strong>
             </div>
           </div>
@@ -200,10 +202,10 @@ function App() {
         <div className="card glass">
           <div className="card-header">
             <div>
-              <h2>探索木ビュー</h2>
-              <p className="label">展開：紫 / 枝刈り：グレー / 現在ノード：グロー</p>
+              <h2>Search Tree</h2>
+              <p className="label">Expand: purple / Pruned: gray / Current: glow</p>
             </div>
-            <div className="chip">イベント {events.length}</div>
+            <div className="chip">Events: {events.length}</div>
           </div>
           <SearchTreeView
             events={eventTreeSlice}

@@ -228,7 +228,7 @@ const SearchTreeView = ({
                     {node.path.join("→")}
                   </text>
                   <text className="tree-sub" x={0} y={20}>
-                    {node.status === "pruned" ? "枝刈り" : `bound ${node.bound.toFixed(1)}`}
+                    {node.status === "pruned" ? "pruned" : `bound ${node.bound.toFixed(1)}`}
                   </text>
                 </g>
               );
@@ -281,7 +281,7 @@ const SearchTreeView = ({
                     {node.path.join("→")}
                   </text>
                   <text className="tree-sub" x={0} y={20}>
-                    {node.status === "pruned" ? "枝刈り" : `bound ${node.bound.toFixed(1)}`}
+                    {node.status === "pruned" ? "pruned" : `bound ${node.bound.toFixed(1)}`}
                   </text>
                 </g>
               );

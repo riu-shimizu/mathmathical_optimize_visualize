@@ -21,7 +21,7 @@ const TimelineController = ({
     <div className="timeline-body">
       <div className="left">
         <button className="ghost" onClick={() => onStepChange(0)} disabled={totalSteps === 0}>
-          ⏮ 先頭
+          ⏮ Start
         </button>
         <button
           className="primary"
@@ -29,14 +29,14 @@ const TimelineController = ({
           disabled={totalSteps === 0}
           style={{ minWidth: 96 }}
         >
-          {isPlaying ? "一時停止" : "再生"}
+          {isPlaying ? "Pause" : "Play"}
         </button>
         <button
           className="ghost"
           onClick={() => onStepChange(totalSteps)}
           disabled={totalSteps === 0}
         >
-          ⏭ 最後
+          ⏭ End
         </button>
       </div>
 
@@ -57,7 +57,7 @@ const TimelineController = ({
       </div>
 
       <div className="right">
-        <label className="label">再生速度</label>
+        <label className="label">Speed</label>
         <select
           value={playSpeed}
           onChange={(e) => onSpeedChange(Number(e.target.value))}

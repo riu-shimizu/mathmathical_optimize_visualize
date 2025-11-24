@@ -10,6 +10,7 @@ export type NodePoint = {
 type Props = {
   nodes: NodePoint[];
   bestRoute: number[];
+  currentPath: number[];
   selectedNodeId: number | null;
   addMode: boolean;
   onAddNode: (x: number, y: number) => void;
@@ -23,6 +24,7 @@ const HEIGHT = 360;
 const GraphView = ({
   nodes,
   bestRoute,
+  currentPath,
   addMode,
   onAddNode,
   onMoveNode,
@@ -39,7 +41,7 @@ const GraphView = ({
     if (!addMode) return;
     if (draggingId !== null) return;
     const targetEl = e.target as HTMLElement;
-    // クリックがノード上なら追加しない
+    // ignore clicks on existing nodes when adding
     if (targetEl.closest("[data-node-id]")) return;
     const svgEl = svgRef.current;
     if (!svgEl) return;
@@ -73,6 +75,17 @@ const GraphView = ({
         })
       : [];
 
+  const pathEdges =
+    currentPath.length > 1
+      ? currentPath.map((id, idx) => {
+          if (idx === currentPath.length - 1) return null;
+          const a = nodeMap.get(id);
+          const b = nodeMap.get(currentPath[idx + 1]);
+          if (!a || !b) return null;
+          return { id: `p-${id}-${currentPath[idx + 1]}`, a, b };
+        })
+      : [];
+
   return (
     <div className="graph-container" onMouseMove={handleMouseMove} onMouseUp={handleMouseUp}>
       <svg
@@ -98,6 +111,23 @@ const GraphView = ({
 
         <rect width={WIDTH} height={HEIGHT} rx="18" fill="rgba(255,255,255,0.02)" />
 
+        {pathEdges.map(
+          (edge) =>
+            edge && (
+              <line
+                key={edge.id}
+                x1={edge.a.x}
+                y1={edge.a.y}
+                x2={edge.b.x}
+                y2={edge.b.y}
+                stroke="rgba(255,255,255,0.35)"
+                strokeDasharray="6 6"
+                strokeWidth={2}
+                opacity={0.7}
+              />
+            ),
+        )}
+
         {bestEdges.map(
           (edge) =>
             edge && (
@@ -118,55 +148,58 @@ const GraphView = ({
             ),
         )}
 
-        {nodes.map((node) => (
-          <g key={node.id}>
-            {selectedNodeId === node.id && (
-              <circle
+        {nodes.map((node) => {
+          const isInPath = currentPath.includes(node.id);
+          return (
+            <g key={node.id}>
+              {selectedNodeId === node.id && (
+                <circle
+                  cx={node.x}
+                  cy={node.y}
+                  r={18}
+                  fill="url(#glow)"
+                  opacity={0.9}
+                  style={{ pointerEvents: "none" }}
+                />
+              )}
+              <motion.circle
+                data-node-id={node.id}
                 cx={node.x}
                 cy={node.y}
-                r={18}
-                fill="url(#glow)"
-                opacity={0.9}
-                style={{ pointerEvents: "none" }}
+                r={10}
+                fill={isInPath ? "#9be8ff" : "#0ef0c9"}
+                stroke={isInPath ? "#9be8ff" : "#0ef0c9"}
+                strokeWidth={isInPath ? 3 : 2}
+                onMouseEnter={() => setHoverId(node.id)}
+                onMouseLeave={() => setHoverId(null)}
+                onMouseDown={(e) => {
+                  e.stopPropagation();
+                  setDraggingId(node.id);
+                  onSelectNode(node.id);
+                }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onSelectNode(node.id);
+                }}
+                className="node-dot"
               />
-            )}
-            <motion.circle
-              data-node-id={node.id}
-              cx={node.x}
-              cy={node.y}
-              r={10}
-              fill="#0ef0c9"
-              stroke="#0ef0c9"
-              strokeWidth={2}
-              onMouseEnter={() => setHoverId(node.id)}
-              onMouseLeave={() => setHoverId(null)}
-              onMouseDown={(e) => {
-                e.stopPropagation();
-                setDraggingId(node.id);
-                onSelectNode(node.id);
-              }}
-              onClick={(e) => {
-                e.stopPropagation();
-                onSelectNode(node.id);
-              }}
-              className="node-dot"
-            />
-            {hoverId === node.id && (
-              <circle
-                cx={node.x}
-                cy={node.y}
-                r={16}
-                stroke="#8b7bff"
-                strokeWidth={2}
-                opacity={0.6}
-                style={{ pointerEvents: "none" }}
-              />
-            )}
-            <text x={node.x + 12} y={node.y + 4} className="node-label">
-              #{node.id}
-            </text>
-          </g>
-        ))}
+              {hoverId === node.id && (
+                <circle
+                  cx={node.x}
+                  cy={node.y}
+                  r={16}
+                  stroke="#8b7bff"
+                  strokeWidth={2}
+                  opacity={0.6}
+                  style={{ pointerEvents: "none" }}
+                />
+              )}
+              <text x={node.x + 12} y={node.y + 4} className="node-label">
+                #{node.id}
+              </text>
+            </g>
+          );
+        })}
       </svg>
     </div>
   );
