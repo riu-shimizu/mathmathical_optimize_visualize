@@ -98,72 +98,56 @@ const GraphView = ({
         viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
         onClick={handleBackgroundClick}
       >
-        <defs>
-          <radialGradient id="glow" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="#7c9dff" stopOpacity="0.9" />
-            <stop offset="100%" stopColor="#7c9dff" stopOpacity="0" />
-          </radialGradient>
-          <filter id="glowFilter" x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur stdDeviation="4" result="blur" />
-            <feMerge>
-              <feMergeNode in="blur" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
-        </defs>
-
         <rect width={WIDTH} height={HEIGHT} rx="18" fill="rgba(255,255,255,0.02)" />
 
-        {pathPoints.length > 1 && (
-          <motion.polyline
-            points={pathPoints.map((p) => `${p.x},${p.y}`).join(" ")}
-            stroke="rgba(255,255,255,0.6)"
-            strokeDasharray="10 8"
-            strokeWidth={2.4}
-            fill="none"
-            opacity={0.7}
-            initial={{ pathLength: 0, opacity: 0 }}
-            animate={{ pathLength: 1, opacity: 0.7 }}
-            transition={{ duration: 0.4 }}
-          />
-        )}
-
         {bestPoints.length > 1 && (
-          <motion.polyline
+          <polyline
             points={bestPoints.map((p) => `${p.x},${p.y}`).join(" ")}
-            stroke="rgba(139,123,255,0.78)"
+            stroke="#8b7bff"
             strokeWidth={4}
             fill="none"
             strokeOpacity={0.9}
-            initial={{ pathLength: 0 }}
-            animate={{ pathLength: 1 }}
-            transition={{ duration: 0.6 }}
-            filter="url(#glowFilter)"
+            strokeLinecap="round"
+            strokeLinejoin="round"
           />
+        )}
+
+        {pathPoints.length > 1 && (
+          <>
+            <polyline
+              points={pathPoints.map((p) => `${p.x},${p.y}`).join(" ")}
+              stroke="rgba(255,255,255,0.35)"
+              strokeWidth={6}
+              fill="none"
+              opacity={0.8}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            <polyline
+              points={pathPoints.map((p) => `${p.x},${p.y}`).join(" ")}
+              stroke="#00e0ff"
+              strokeWidth={3}
+              fill="none"
+              opacity={0.95}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeDasharray="10 8"
+            />
+          </>
         )}
 
         {nodes.map((node) => {
           const isInPath = currentPath.includes(node.id);
           return (
             <g key={node.id}>
-              {selectedNodeId === node.id && (
-                <circle
-                  cx={node.x}
-                  cy={node.y}
-                  r={18}
-                  fill="url(#glow)"
-                  opacity={0.9}
-                  style={{ pointerEvents: "none" }}
-                />
-              )}
               <motion.circle
                 data-node-id={node.id}
                 cx={node.x}
                 cy={node.y}
                 r={10}
-                fill={isInPath ? "#9be8ff" : "#0ef0c9"}
-                stroke={isInPath ? "#9be8ff" : "#0ef0c9"}
-                strokeWidth={isInPath ? 3 : 2}
+              fill={isInPath ? "#00e0ff" : "#0ef0c9"}
+              stroke={isInPath ? "#00e0ff" : "#0ef0c9"}
+              strokeWidth={isInPath ? 3 : 2}
                 onMouseEnter={() => setHoverId(node.id)}
                 onMouseLeave={() => setHoverId(null)}
                 onMouseDown={(e) => {

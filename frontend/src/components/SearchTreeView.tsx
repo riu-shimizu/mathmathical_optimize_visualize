@@ -193,6 +193,26 @@ const SearchTreeView = ({
   const effectiveXManual = manualOffset.x - panX;
   const effectiveYManual = manualOffset.y;
 
+  const wrapPath = (path: number[], maxChars = 12) => {
+    const tokens = path.map((p) => String(p));
+    const lines: string[] = [];
+    let current = "";
+    tokens.forEach((tok, idx) => {
+      const piece = idx === tokens.length - 1 ? tok : `${tok}→`;
+      if ((current + piece).length > maxChars && current.length > 0) {
+        lines.push(current.slice(0, -1)); // drop trailing arrow
+        current = piece;
+      } else {
+        current += piece;
+      }
+    });
+    if (current) {
+      if (current.endsWith("→")) current = current.slice(0, -1);
+      lines.push(current);
+    }
+    return lines;
+  };
+
   return (
     <div className="tree-container">
       <svg
@@ -264,8 +284,12 @@ const SearchTreeView = ({
                     animate={{ scale: 1 }}
                     transition={{ type: "spring", stiffness: 120, damping: 12 }}
                   />
-                  <text className="tree-label" x={0} y={4}>
-                    {node.path.join("→")}
+                  <text className="tree-label" x={0} y={0}>
+                    {wrapPath(node.path).map((line, i) => (
+                      <tspan key={i} x={0} dy={i === 0 ? 0 : 12}>
+                        {line}
+                      </tspan>
+                    ))}
                   </text>
                   <text className="tree-sub" x={0} y={20}>
                     {node.status === "pruned" ? "pruned" : `bound ${node.bound.toFixed(1)}`}
@@ -317,8 +341,12 @@ const SearchTreeView = ({
                     stroke={isBest ? "#6fffe0" : node.status === "pruned" ? "rgba(255,255,255,0.2)" : "#d6c9ff"}
                     strokeWidth={isBest ? 3 : node.status === "pruned" ? 1 : 2}
                   />
-                  <text className="tree-label" x={0} y={4}>
-                    {node.path.join("→")}
+                  <text className="tree-label" x={0} y={0}>
+                    {wrapPath(node.path).map((line, i) => (
+                      <tspan key={i} x={0} dy={i === 0 ? 0 : 12}>
+                        {line}
+                      </tspan>
+                    ))}
                   </text>
                   <text className="tree-sub" x={0} y={20}>
                     {node.status === "pruned" ? "pruned" : `bound ${node.bound.toFixed(1)}`}

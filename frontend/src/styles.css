@@ -136,17 +136,18 @@ h2 {
   border-radius: 16px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   padding: 6px;
+  user-select: none;
 }
 
 .tree-label {
   fill: #fff;
-  font-size: 12px;
+  font-size: 11px;
   text-anchor: middle;
 }
 
 .tree-sub {
   fill: var(--muted);
-  font-size: 10px;
+  font-size: 9px;
   text-anchor: middle;
 }
 

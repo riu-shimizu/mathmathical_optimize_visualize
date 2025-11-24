@@ -21,10 +21,13 @@ export type SearchEvent = {
 
 const initialNodes: NodePoint[] = [
   { id: 0, x: 120, y: 120 },
-  { id: 1, x: 360, y: 100 },
+  { id: 1, x: 340, y: 80 },
   { id: 2, x: 420, y: 260 },
-  { id: 3, x: 200, y: 280 },
+  { id: 3, x: 100, y: 280 },
+  { id: 4, x: 320, y: 220 },
 ];
+
+const MAX_NODES = 10;
 
 function App() {
   const [nodes, setNodes] = useState<NodePoint[]>(initialNodes);
@@ -126,6 +129,11 @@ function App() {
     }));
 
   const handleAddNode = (x: number, y: number) => {
+    if (nodes.length >= MAX_NODES) {
+      alert(`You can place up to ${MAX_NODES} nodes.`);
+      setAddMode(false);
+      return;
+    }
     const newNodes = renumberNodes([...nodes, { id: nodes.length, x, y }]);
     setNodes(newNodes);
     setSelectedNodeId(newNodes.length - 1);
@@ -156,10 +164,10 @@ function App() {
     <div className="page">
       <header className="header">
         <div>
-          <div className="eyebrow">TSP Search Explorer</div>
-          <h1>TSP Explorer</h1>
+          <div className="eyebrow">Algorithm Visualizer</div>
+          <h1>Traveling Salesman Problem</h1>
           <p className="subtitle">
-            Branch-and-bound search visualized with glowing trees and smooth playback.
+            Branch-and-bound search visualized with glowing search trees.
           </p>
         </div>
         <div className="header-actions">
@@ -181,7 +189,10 @@ function App() {
                 Click “Add node” then click canvas / drag to move / select then delete
               </p>
             </div>
-            <div className="chip">Nodes: {nodes.length}</div>
+            <div className="chip">
+              Nodes: <br/>
+              {nodes.length} / {MAX_NODES}
+            </div>
           </div>
           <GraphView
             nodes={nodes}
@@ -197,6 +208,7 @@ function App() {
             <button
               className={addMode ? "primary" : "ghost"}
               onClick={() => setAddMode((v) => !v)}
+              disabled={nodes.length >= MAX_NODES}
             >
               Add Node
             </button>
