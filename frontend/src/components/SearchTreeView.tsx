@@ -38,8 +38,10 @@ const SearchTreeView = ({
   const [dragging, setDragging] = useState(false);
   const [lastPos, setLastPos] = useState<{ x: number; y: number } | null>(null);
 
-  const { nodes, links, panX } = useMemo(() => {
+  const { nodes, links, panX, bestPathNodeIds, bestPathEdges } = useMemo(() => {
     const map = new Map<string, TreeNode>();
+    const bestPathNodeIds = new Set<string>();
+    const bestPathEdges = new Set<string>();
 
     const getDepth = (path: number[]) => Math.max(0, path.length - 1);
 
@@ -77,6 +79,54 @@ const SearchTreeView = ({
       }
     });
 
+    // Drop pruned nodes after 2 steps to keep layout compact
+    Array.from(map.values()).forEach((node) => {
+      if (
+        node.status === "pruned" &&
+        node.pruneStep !== undefined &&
+        node.pruneStep <= currentStep - 2
+      ) {
+        map.delete(node.id);
+      }
+    });
+
+    // On finish: keep all non-pruned complete tours and their ancestors. Remove pruned nodes as above.
+    if (isFinished) {
+      const maxDepthSeen = Math.max(...Array.from(map.values()).map((n) => n.path.length));
+      const targetDepth = bestRoute.length > 1 ? bestRoute.length - 1 : maxDepthSeen;
+      const keep = new Set<string>();
+      Array.from(map.values()).forEach((node) => {
+        if (node.status !== "pruned" && node.path.length === targetDepth) {
+          let cur: TreeNode | undefined = node;
+          while (cur) {
+            keep.add(cur.id);
+            if (!cur.parentId) break;
+            cur = map.get(cur.parentId);
+          }
+        }
+      });
+      Array.from(map.keys()).forEach((id) => {
+        if (!keep.has(id)) {
+          map.delete(id);
+        }
+      });
+    }
+
+    // Identify best path nodes/edges for highlight
+    if (bestRoute.length > 0) {
+      Array.from(map.values()).forEach((node) => {
+        const isOnBest = node.path.every(
+          (id, idx) => idx < bestRoute.length && bestRoute[idx] === id,
+        );
+        if (isOnBest) {
+          bestPathNodeIds.add(node.id);
+          if (node.parentId) {
+            bestPathEdges.add(`${node.parentId}-${node.id}`);
+          }
+        }
+      });
+    }
+
     const depthGroups: Record<number, TreeNode[]> = {};
     map.forEach((node) => {
       if (!depthGroups[node.depth]) depthGroups[node.depth] = [];
@@ -90,6 +140,7 @@ const SearchTreeView = ({
     let maxX = 0;
     Object.entries(depthGroups).forEach(([depthStr, group]) => {
       const depth = Number(depthStr);
+      if (group.length === 0) return;
       const spacing = Math.max(140, VIEW_WIDTH / (group.length + 0.5));
       group.forEach((node, idx) => {
         const x = spacing * (idx + 1);
@@ -111,8 +162,8 @@ const SearchTreeView = ({
     const panX =
       currentPos && currentPos.x > VIEW_WIDTH * 0.5 ? currentPos.x - VIEW_WIDTH * 0.5 : 0;
 
-    return { nodes: positionedNodes, links, panX };
-  }, [events, currentEvent, currentStep, isPlaying]);
+    return { nodes: positionedNodes, links, panX, bestPathNodeIds, bestPathEdges };
+  }, [events, currentEvent, currentStep, isPlaying, isFinished, bestRoute]);
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if (isPlaying) return;
@@ -136,22 +187,6 @@ const SearchTreeView = ({
   const effectiveXPlaying = -panX;
   const effectiveXManual = manualOffset.x - panX;
   const effectiveYManual = manualOffset.y;
-
-  const bestPathNodeIds = new Set<string>();
-  const bestPathEdges = new Set<string>();
-  if (isFinished && bestRoute.length > 0) {
-    events.forEach((ev) => {
-      if (ev.type === "expand") {
-        const matches = ev.path.every((id, idx) => bestRoute[idx] === id);
-        if (matches) {
-          bestPathNodeIds.add(ev.node_id);
-          if (ev.parent_id) {
-            bestPathEdges.add(`${ev.parent_id}-${ev.node_id}`);
-          }
-        }
-      }
-    });
-  }
 
   return (
     <div className="tree-container">

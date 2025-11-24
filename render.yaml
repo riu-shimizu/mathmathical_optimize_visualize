@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: tsp-backend
+    env: python
+    plan: free
+    buildCommand: "cd backend && pip install -r requirements.txt"
+    startCommand: "cd backend && uvicorn backend.main:app --host 0.0.0.0 --port ${PORT}"
+    autoDeploy: true
+    region: oregon
+  - type: static
+    name: tsp-frontend
+    env: static
+    buildCommand: "cd frontend && npm install && npm run build"
+    publishPath: "frontend/dist"
+    autoDeploy: true
+    envVars:
+      - key: VITE_API_URL
+        # 上のバックエンドURLに置き換えてください（例: https://tsp-backend.onrender.com）
+        value: "https://tsp-backend.onrender.com"

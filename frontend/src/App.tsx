@@ -67,6 +67,7 @@ function App() {
   }, [events, currentStep]);
 
   const eventTreeSlice = useMemo(() => events.slice(0, currentStep + 1), [events, currentStep]);
+  const isFinished = events.length > 0 && currentStep >= events.length - 1;
 
   const resetPlayback = () => {
     setEvents([]);
@@ -175,7 +176,7 @@ function App() {
           <GraphView
             nodes={nodes}
             bestRoute={bestRoute}
-            currentPath={events[currentStep]?.path || []}
+            currentPath={isFinished ? [] : events[currentStep]?.path || []}
             addMode={addMode}
             onAddNode={handleAddNode}
             onMoveNode={handleUpdateNode}
@@ -212,7 +213,7 @@ function App() {
             currentEvent={events[currentStep]}
             currentStep={currentStep}
             isPlaying={isPlaying}
-            isFinished={events.length > 0 && currentStep >= events.length - 1}
+            isFinished={isFinished}
             bestRoute={bestRoute}
           />
         </div>

@@ -114,16 +114,19 @@ const GraphView = ({
         {pathEdges.map(
           (edge) =>
             edge && (
-              <line
+              <motion.line
                 key={edge.id}
                 x1={edge.a.x}
                 y1={edge.a.y}
                 x2={edge.b.x}
                 y2={edge.b.y}
-                stroke="rgba(255,255,255,0.35)"
-                strokeDasharray="6 6"
-                strokeWidth={2}
-                opacity={0.7}
+                stroke="rgba(255,255,255,0.55)"
+                strokeDasharray="8 6"
+                strokeWidth={2.2}
+                opacity={0.65}
+                initial={{ pathLength: 0, opacity: 0 }}
+                animate={{ pathLength: 1, opacity: 0.65 }}
+                transition={{ duration: 0.4 }}
               />
             ),
         )}
@@ -137,9 +140,9 @@ const GraphView = ({
                 y1={edge.a.y}
                 x2={edge.b.x}
                 y2={edge.b.y}
-                stroke="#8b7bff"
+                stroke="rgba(139,123,255,0.7)"
                 strokeWidth={4}
-                strokeOpacity={0.9}
+                strokeOpacity={0.85}
                 initial={{ pathLength: 0 }}
                 animate={{ pathLength: 1 }}
                 transition={{ duration: 0.5 }}
