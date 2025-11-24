@@ -63,7 +63,7 @@ const TimelineController = ({
           onChange={(e) => onSpeedChange(Number(e.target.value))}
           className="select"
         >
-        {[1, 2, 4, 16,256,2048].map((s) => (
+        {[0.5, 1, 2, 4, 16, 64, 256].map((s) => (
           <option key={s} value={s}>
             {s}x
           </option>

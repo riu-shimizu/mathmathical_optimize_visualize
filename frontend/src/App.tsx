@@ -41,10 +41,11 @@ function App() {
   useEffect(() => {
     if (!isPlaying) return;
     const interval = Math.max(8, 400 / playSpeed);
+    const stepJump = Math.max(1, Math.round(playSpeed / 8));
     const timer = setInterval(() => {
       setCurrentStep((prev) => {
         if (!events.length) return 0;
-        const next = prev + 1;
+        const next = prev + stepJump;
         if (next >= events.length) {
           setIsPlaying(false);
           return events.length - 1;
